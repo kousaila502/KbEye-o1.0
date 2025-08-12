@@ -1,0 +1,49 @@
+# 👁️ KbEye - Microservices Monitor
+
+**Keep an eye on all your microservices in one simple dashboard.**
+
+KbEye is an open-source, self-hosted monitoring solution for microservices. Monitor any service (Node.js, Python, Java, Go, etc.) across any platform (Heroku, AWS, GCP, Docker, etc.) with a single, unified dashboard.
+
+## ✨ Features
+
+- 🔍 **Universal Monitoring** - Monitor any microservice regardless of technology or platform
+- 📊 **Real-time Dashboard** - Live health checks, response times, and uptime tracking
+- 📝 **Centralized Logs** - View logs from all services in one place
+- 🚨 **Smart Alerts** - Email and webhook notifications when services fail
+- 🐳 **Docker Ready** - One-command setup with Docker Compose
+- ⚙️ **JSON Configuration** - Simple file-based configuration, no complex setup
+- 🔧 **Self-hosted** - Your data stays private on your infrastructure
+- 🆓 **Open Source** - Free forever, customize as needed
+
+## 🚀 Quick Start
+
+```bash
+git clone https://github.com/yourusername/kbeye
+cd kbeye
+docker-compose up
+
+Open http://localhost:3000 and start monitoring! 🎉
+📋 Requirements
+
+Docker & Docker Compose
+Services with /health and /logs endpoints (we'll help you add them)
+
+🏗️ How It Works
+
+Clone & Run - Get KbEye running in 2 minutes
+Add Services - Configure your microservices via web UI
+Monitor Everything - Real-time dashboard shows all your services
+Get Alerted - Email/Slack notifications when things go wrong
+
+📖 Documentation
+
+Installation Guide
+Configuration
+API Reference
+
+🤝 Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
+📄 License
+This project is licensed under the MIT License.
+
+Made with ❤️ for developers who want simple microservices monitoring
