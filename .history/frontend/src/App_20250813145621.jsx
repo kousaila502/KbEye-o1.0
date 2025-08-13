@@ -422,8 +422,8 @@ function App() {
                         {service.name}
                       </h3>
                       <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${service.is_healthy
-                        ? 'bg-green-900 text-green-400 border-green-800'
-                        : 'bg-red-900 text-red-400 border-red-800'
+                          ? 'bg-green-900 text-green-400 border-green-800'
+                          : 'bg-red-900 text-red-400 border-red-800'
                         }`}>
                         {service.is_healthy ? 'HEALTHY' : 'DOWN'}
                       </span>
@@ -433,7 +433,7 @@ function App() {
                       <div>
                         <div className="text-gray-400 uppercase tracking-wide text-xs">Response Time</div>
                         <div className={`font-semibold font-mono ${service.response_time < 200 ? 'text-green-400' :
-                          service.response_time < 1000 ? 'text-yellow-400' : 'text-red-400'
+                            service.response_time < 1000 ? 'text-yellow-400' : 'text-red-400'
                           }`}>
                           {service.response_time ? Math.round(service.response_time) : 0}ms
                         </div>
@@ -495,17 +495,19 @@ function App() {
                       : 'Backend connection failed. Please check if your KbEye backend is running on http://localhost:8000'
                     }
                   </p>
-                  <button
-                    onClick={() => setIsAddServiceModalOpen(true)}
-                    className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
-                  >
-                    Add Your First Service
-                  </button>
+                  <button className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200">
+                    <button
+                      onClick={() => setIsAddServiceModalOpen(true)}  // ← ADD THIS ONCLICK
+                      className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
+                    >
+                      Add Your First Service
+                    </button>
                 </div>
               </div>
             )}
           </>
         )}
+
         {/* Debug Info with WebSocket Status */}
         {connectionStatus === 'connected' && (
           <div className="mt-12 text-center">
@@ -531,7 +533,7 @@ function App() {
         onServiceAdded={handleAddService}
         existingServices={services}
       />
-    </div >
+    </div>
   )
 }
 

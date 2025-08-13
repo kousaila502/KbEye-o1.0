@@ -28,10 +28,9 @@ class WebSocketService {
             stableStatusChange: []
         };
 
-        // Debug logging - DISABLED
-        /*
+        // Debug logging
         if (API_CONFIG.DEBUG.ENABLED) {
-            console.log('🔧 WebSocket Service initialized:', {
+            //console.log('🔧 WebSocket Service initialized:', {
                 wsUrl: API_CONFIG.WEBSOCKET.getWebSocketUrl(),
                 maxReconnectAttempts: this.maxReconnectAttempts,
                 reconnectInterval: this.reconnectInterval,
@@ -39,14 +38,13 @@ class WebSocketService {
                 enabled: API_CONFIG.FEATURES.WEBSOCKET_ENABLED
             });
         }
-        */
     }
 
     // Connect to WebSocket (using environment configuration)
     async connect() {
         // Check if WebSocket is enabled via feature flag
         if (!API_CONFIG.FEATURES.WEBSOCKET_ENABLED) {
-            // console.log('🔌 WebSocket disabled via feature flag');
+            //console.log('🔌 WebSocket disabled via feature flag');
             return Promise.resolve();
         }
 
@@ -62,17 +60,15 @@ class WebSocketService {
                 // Get WebSocket URL from configuration (environment-aware)
                 const wsUrl = API_CONFIG.WEBSOCKET.getWebSocketUrl();
                 
-                /*
-                if (API_CONFIG.DEBUG.ENABLED) {
-                    console.log('🔌 Connecting to WebSocket:', wsUrl);
-                }
-                */
+              /*  if (API_CONFIG.DEBUG.ENABLED) {
+                    //console.log('🔌 Connecting to WebSocket:', wsUrl);
+                }*/
                 
                 this.ws = new WebSocket(wsUrl);
 
                 // Connection opened
                 this.ws.onopen = (event) => {
-                    // console.log('✅ WebSocket connected successfully');
+                    //console.log('✅ WebSocket connected successfully');
                     this.reconnectAttempts = 0;
                     
                     // Clear disconnection timer and update stable status
@@ -91,11 +87,9 @@ class WebSocketService {
 
                 // Message received
                 this.ws.onmessage = (event) => {
-                    /*
                     if (API_CONFIG.DEBUG.ENABLED) {
-                        console.log('📨 WebSocket message received:', event.data);
+                        //console.log('📨 WebSocket message received:', event.data);
                     }
-                    */
                     
                     try {
                         // Try to parse as JSON first
@@ -105,27 +99,23 @@ class WebSocketService {
                         
                         // Handle health check messages
                         if (data.type === API_CONFIG.WEBSOCKET.MESSAGE_TYPES.HEALTH_CHECK) {
-                            /*
                             if (API_CONFIG.DEBUG.ENABLED) {
-                                console.log('⚡ Health check update received:', data.data);
+                                //console.log('⚡ Health check update received:', data.data);
                             }
-                            */
                             this.emitEvent('healthCheck', data.data);
                         }
                     } catch (error) {
                         // Handle plain text messages (echo responses)
-                        /*
                         if (API_CONFIG.DEBUG.ENABLED) {
-                            console.log('📨 Text message:', event.data);
+                            //console.log('📨 Text message:', event.data);
                         }
-                        */
                         this.emitEvent('message', { type: 'echo', data: event.data });
                     }
                 };
 
                 // Connection closed
                 this.ws.onclose = (event) => {
-                    // console.log('🔌 WebSocket connection closed:', event.code, event.reason);
+                    //console.log('🔌 WebSocket connection closed:', event.code, event.reason);
                     this.stopHeartbeat();
                     
                     // Start grace period timer instead of immediate status change
@@ -141,7 +131,7 @@ class WebSocketService {
 
                 // Connection error
                 this.ws.onerror = (error) => {
-                    // console.error('❌ WebSocket error occurred:', error);
+                    console.error('❌ WebSocket error occurred:', error);
                     this.emitEvent('error', error);
                     
                     // Only reject on first connection attempt
@@ -151,7 +141,7 @@ class WebSocketService {
                 };
 
             } catch (error) {
-                // console.error('❌ WebSocket connection setup failed:', error);
+                console.error('❌ WebSocket connection setup failed:', error);
                 reject(error);
             }
         });
@@ -159,7 +149,7 @@ class WebSocketService {
 
     // Disconnect WebSocket
     disconnect() {
-        // console.log('🔌 Manually disconnecting WebSocket');
+        //console.log('🔌 Manually disconnecting WebSocket');
         this.isManualDisconnect = true;
         this.stopHeartbeat();
         this.clearDisconnectionTimer();
@@ -176,13 +166,13 @@ class WebSocketService {
         this.reconnectAttempts++;
         const delay = this.reconnectInterval;
         
-        // console.log(`🔄 Scheduling WebSocket reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
+        console.log(`🔄 Scheduling WebSocket reconnection attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts} in ${delay}ms`);
         
         setTimeout(() => {
             if (!this.isManualDisconnect && this.reconnectAttempts <= this.maxReconnectAttempts) {
-                // console.log(`🔄 Attempting WebSocket reconnection (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
+                console.log(`🔄 Attempting WebSocket reconnection (${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
                 this.connect().catch(error => {
-                    // console.error('❌ WebSocket reconnection failed:', error);
+                    console.error('❌ WebSocket reconnection failed:', error);
                 });
             }
         }, delay);
@@ -194,11 +184,9 @@ class WebSocketService {
         
         this.pingInterval = setInterval(() => {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-                /*
                 if (API_CONFIG.DEBUG.ENABLED) {
-                    console.log('💓 Sending heartbeat ping');
+                    //console.log('💓 Sending heartbeat ping');
                 }
-                */
                 this.send('ping');
             }
         }, this.pingIntervalTime);
@@ -216,14 +204,12 @@ class WebSocketService {
     startDisconnectionTimer() {
         this.clearDisconnectionTimer();
         
-        /*
         if (API_CONFIG.DEBUG.ENABLED) {
             console.log(`⏳ Starting ${this.gracePeriod/1000}s grace period for WebSocket reconnection`);
         }
-        */
         
         this.disconnectionTimer = setTimeout(() => {
-            // console.log('⚠️ Grace period expired, marking as disconnected');
+            //console.log('⚠️ Grace period expired, marking as disconnected');
             this.updateStableStatus('disconnected');
         }, this.gracePeriod);
     }
@@ -231,11 +217,9 @@ class WebSocketService {
     // Clear disconnection timer
     clearDisconnectionTimer() {
         if (this.disconnectionTimer) {
-            /*
             if (API_CONFIG.DEBUG.ENABLED) {
-                console.log('✅ WebSocket reconnected within grace period');
+                //console.log('✅ WebSocket reconnected within grace period');
             }
-            */
             clearTimeout(this.disconnectionTimer);
             this.disconnectionTimer = null;
         }
@@ -244,7 +228,7 @@ class WebSocketService {
     // Update stable connection status
     updateStableStatus(status) {
         if (this.stableConnectionStatus !== status) {
-            // console.log(`🔄 Stable WebSocket status changed: ${this.stableConnectionStatus} → ${status}`);
+            console.log(`🔄 Stable WebSocket status changed: ${this.stableConnectionStatus} → ${status}`);
             this.stableConnectionStatus = status;
             this.emitEvent('stableStatusChange', status);
         }
@@ -262,18 +246,16 @@ class WebSocketService {
                 const messageStr = typeof message === 'string' ? message : JSON.stringify(message);
                 this.ws.send(messageStr);
                 
-                /*
                 if (API_CONFIG.DEBUG.ENABLED) {
-                    console.log('📤 WebSocket message sent:', messageStr);
+                    //console.log('📤 WebSocket message sent:', messageStr);
                 }
-                */
                 return true;
             } catch (error) {
-                // console.error('❌ Failed to send WebSocket message:', error);
+                console.error('❌ Failed to send WebSocket message:', error);
                 return false;
             }
         } else {
-            // console.warn('⚠️ WebSocket not connected, cannot send message');
+            console.warn('⚠️ WebSocket not connected, cannot send message');
             return false;
         }
     }
@@ -283,7 +265,7 @@ class WebSocketService {
         if (this.listeners[event]) {
             this.listeners[event].push(callback);
         } else {
-            // console.warn(`⚠️ Unknown WebSocket event: ${event}`);
+            console.warn(`⚠️ Unknown WebSocket event: ${event}`);
         }
     }
 
@@ -304,7 +286,7 @@ class WebSocketService {
                 try {
                     callback(data);
                 } catch (error) {
-                    // console.error(`❌ Error in WebSocket ${event} listener:`, error);
+                    console.error(`❌ Error in WebSocket ${event} listener:`, error);
                 }
             });
         }

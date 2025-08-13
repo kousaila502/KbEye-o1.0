@@ -13,21 +13,21 @@ function App() {
   const [error, setError] = useState(null)
   const [lastUpdate, setLastUpdate] = useState(null)
   const [isAddServiceModalOpen, setIsAddServiceModalOpen] = useState(false)  // ← ADD THIS LINE
-
+  
   // Ref to track mounted state
   const isMounted = useRef(true)
 
   // Initialize connections when component mounts
   useEffect(() => {
     isMounted.current = true
-
+    
     // Test HTTP API connection and load initial data
     testBackendConnection()
     loadDashboardData()
-
+    
     // Setup WebSocket connection
     setupWebSocket()
-
+    
     // Cleanup on unmount
     return () => {
       isMounted.current = false
@@ -59,7 +59,7 @@ function App() {
     setLoading(true)
     try {
       console.log('🔄 Loading initial dashboard data...')
-
+      
       // Load services and their status in parallel
       const [servicesResult, statusResult] = await Promise.all([
         apiService.getServices(),
@@ -94,7 +94,7 @@ function App() {
   const setupWebSocket = async () => {
     try {
       console.log('🔌 Setting up WebSocket connection...')
-
+      
       // WebSocket event listeners
       wsService.on('open', () => {
         console.log('✅ WebSocket connected')
@@ -126,7 +126,7 @@ function App() {
 
       // Connect to WebSocket
       await wsService.connect()
-
+      
     } catch (error) {
       console.error('❌ WebSocket setup failed:', error)
       setWsConnectionStatus('failed')
@@ -136,15 +136,15 @@ function App() {
   // Handle real-time health updates from WebSocket
   const handleRealtimeHealthUpdate = useCallback((healthData) => {
     if (!isMounted.current) return
-
+    
     const { service_id, is_healthy, response_time, status_code, error_message } = healthData
-
+    
     console.log(`🔄 Updating service ${service_id} status in real-time`)
-
+    
     // Update services status array
     setServicesStatus(prevStatus => {
       const existingIndex = prevStatus.findIndex(s => s.service_id === service_id)
-
+      
       const updatedStatusItem = {
         service_id,
         is_healthy,
@@ -153,7 +153,7 @@ function App() {
         error_message,
         last_check: new Date().toISOString()
       }
-
+      
       if (existingIndex >= 0) {
         // Update existing service status
         const newStatus = [...prevStatus]
@@ -164,10 +164,10 @@ function App() {
         return [...prevStatus, updatedStatusItem]
       }
     })
-
+    
     // Update last update timestamp
     setLastUpdate(new Date())
-
+    
   }, [])
 
   const refreshData = () => {
@@ -247,7 +247,7 @@ function App() {
   const totalServices = servicesWithStatus.length
   const healthyServices = servicesWithStatus.filter(s => s.is_healthy).length
   const unhealthyServices = totalServices - healthyServices
-  const avgResponseTime = servicesWithStatus.length > 0
+  const avgResponseTime = servicesWithStatus.length > 0 
     ? Math.round(servicesWithStatus.reduce((sum, s) => sum + (s.response_time || 0), 0) / servicesWithStatus.length)
     : 0
 
@@ -257,7 +257,7 @@ function App() {
       <header className="bg-gray-800 border-b border-gray-700 shadow-lg sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
-
+            
             {/* Logo Section */}
             <div className="flex flex-col">
               <div className="text-2xl font-bold">
@@ -312,9 +312,9 @@ function App() {
                   </svg>
                 )}
               </div>
-
+              
               {/* Refresh Button */}
-              <button
+              <button 
                 onClick={refreshData}
                 disabled={loading}
                 className="flex items-center space-x-2 px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 font-medium rounded-lg transition-colors duration-200 disabled:opacity-50"
@@ -323,9 +323,9 @@ function App() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
-
+              
               {/* Add Service Button */}
-              <button
+              <button 
                 onClick={() => setIsAddServiceModalOpen(true)}  // ← ADD THIS ONCLICK
                 className="flex items-center space-x-2 px-4 py-2 bg-cyan-500 hover:bg-cyan-600 text-white font-medium rounded-lg transition-colors duration-200"
               >
@@ -366,7 +366,7 @@ function App() {
               Issues ({unhealthyServices})
             </button>
           </div>
-
+          
           <div className="flex items-center space-x-4">
             {/* Real-time update indicator */}
             {lastUpdate && (
@@ -374,14 +374,14 @@ function App() {
                 Last update: {lastUpdate.toLocaleTimeString()}
               </div>
             )}
-
+            
             <div className="relative">
               <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
-              <input
-                type="text"
-                placeholder="Search services..."
+              <input 
+                type="text" 
+                placeholder="Search services..." 
                 className="pl-10 pr-4 py-2 bg-gray-700 border border-gray-600 rounded-lg text-gray-300 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
               />
             </div>
@@ -391,7 +391,7 @@ function App() {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-6 py-6">
-
+        
         {/* Loading State */}
         {loading && (
           <div className="text-center py-20">
@@ -408,11 +408,13 @@ function App() {
             {servicesWithStatus.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {servicesWithStatus.map((service, index) => (
-                  <div
-                    key={service.id}
-                    className={`bg-gray-800 border-l-4 ${service.is_healthy ? 'border-green-500' : 'border-red-500'
-                      } rounded-lg p-6 hover:bg-gray-750 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg ${service.is_healthy ? 'hover:shadow-green-500/20' : 'hover:shadow-red-500/20'
-                      }`}
+                  <div 
+                    key={service.id} 
+                    className={`bg-gray-800 border-l-4 ${
+                      service.is_healthy ? 'border-green-500' : 'border-red-500'
+                    } rounded-lg p-6 hover:bg-gray-750 transition-all duration-200 cursor-pointer hover:scale-105 hover:shadow-lg ${
+                      service.is_healthy ? 'hover:shadow-green-500/20' : 'hover:shadow-red-500/20'
+                    }`}
                     style={{
                       animationDelay: `${index * 0.1}s`
                     }}
@@ -421,32 +423,35 @@ function App() {
                       <h3 className="text-lg font-semibold text-white truncate">
                         {service.name}
                       </h3>
-                      <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${service.is_healthy
-                        ? 'bg-green-900 text-green-400 border-green-800'
-                        : 'bg-red-900 text-red-400 border-red-800'
-                        }`}>
+                      <span className={`px-3 py-1 text-xs font-semibold rounded-full border ${
+                        service.is_healthy 
+                          ? 'bg-green-900 text-green-400 border-green-800' 
+                          : 'bg-red-900 text-red-400 border-red-800'
+                      }`}>
                         {service.is_healthy ? 'HEALTHY' : 'DOWN'}
                       </span>
                     </div>
-
+                    
                     <div className="grid grid-cols-2 gap-4 text-sm mb-4">
                       <div>
                         <div className="text-gray-400 uppercase tracking-wide text-xs">Response Time</div>
-                        <div className={`font-semibold font-mono ${service.response_time < 200 ? 'text-green-400' :
+                        <div className={`font-semibold font-mono ${
+                          service.response_time < 200 ? 'text-green-400' : 
                           service.response_time < 1000 ? 'text-yellow-400' : 'text-red-400'
-                          }`}>
+                        }`}>
                           {service.response_time ? Math.round(service.response_time) : 0}ms
                         </div>
                       </div>
                       <div>
                         <div className="text-gray-400 uppercase tracking-wide text-xs">Status Code</div>
-                        <div className={`font-semibold font-mono ${service.status_code === 200 ? 'text-green-400' : 'text-red-400'
-                          }`}>
+                        <div className={`font-semibold font-mono ${
+                          service.status_code === 200 ? 'text-green-400' : 'text-red-400'
+                        }`}>
                           {service.status_code}
                         </div>
                       </div>
                     </div>
-
+                    
                     {/* Service URL */}
                     <div className="p-3 bg-gray-900 rounded border border-gray-700 mb-3">
                       <div className="text-xs text-gray-500 font-mono truncate">
@@ -490,13 +495,14 @@ function App() {
                   </svg>
                   <h3 className="text-xl font-semibold text-gray-300 mb-2">No Services Found</h3>
                   <p className="text-gray-500 mb-8">
-                    {connectionStatus === 'connected'
+                    {connectionStatus === 'connected' 
                       ? 'Connected to backend, but no services are configured. Add your first service to start monitoring!'
                       : 'Backend connection failed. Please check if your KbEye backend is running on http://localhost:8000'
                     }
                   </p>
-                  <button
-                    onClick={() => setIsAddServiceModalOpen(true)}
+                  <button className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200">
+                  <button 
+                    onClick={() => setIsAddServiceModalOpen(true)}  // ← ADD THIS ONCLICK
                     className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
                   >
                     Add Your First Service
@@ -506,6 +512,7 @@ function App() {
             )}
           </>
         )}
+
         {/* Debug Info with WebSocket Status */}
         {connectionStatus === 'connected' && (
           <div className="mt-12 text-center">
@@ -531,7 +538,7 @@ function App() {
         onServiceAdded={handleAddService}
         existingServices={services}
       />
-    </div >
+    </div>
   )
 }
 

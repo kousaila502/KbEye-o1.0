@@ -496,41 +496,46 @@ function App() {
                     }
                   </p>
                   <button
-                    onClick={() => setIsAddServiceModalOpen(true)}
+                    onClick={() => setIsAddServiceModalOpen(true)}  // ← ADD THIS ONCLICK
                     className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
                   >
                     Add Your First Service
                   </button>
-                </div>
+                  className="bg-cyan-500 hover:bg-cyan-600 text-white font-medium px-6 py-3 rounded-lg transition-colors duration-200"
+                    >
+                  Add Your First Service
+                </button>
+              </div>
               </div>
             )}
-          </>
+      </>
         )}
-        {/* Debug Info with WebSocket Status */}
-        {connectionStatus === 'connected' && (
-          <div className="mt-12 text-center">
-            <p className="text-gray-500 text-sm">
-              🎉 Connected to KbEye backend at {apiService.baseUrl}
-            </p>
-            <p className="text-gray-600 text-xs mt-1">
-              HTTP API: {connectionStatus} • WebSocket: {wsConnectionStatus} • Services: {totalServices} • Healthy: {healthyServices} • Issues: {unhealthyServices}
-            </p>
-            {lastUpdate && (
-              <p className="text-gray-600 text-xs mt-1">
-                ⚡ Last real-time update: {lastUpdate.toLocaleTimeString()}
-              </p>
-            )}
-          </div>
-        )}
-      </main>
 
-      {/* ← ADD THIS MODAL COMPONENT: */}
-      <AddServiceModal
-        isOpen={isAddServiceModalOpen}
-        onClose={() => setIsAddServiceModalOpen(false)}
-        onServiceAdded={handleAddService}
-        existingServices={services}
-      />
+      {/* Debug Info with WebSocket Status */}
+      {connectionStatus === 'connected' && (
+        <div className="mt-12 text-center">
+          <p className="text-gray-500 text-sm">
+            🎉 Connected to KbEye backend at {apiService.baseUrl}
+          </p>
+          <p className="text-gray-600 text-xs mt-1">
+            HTTP API: {connectionStatus} • WebSocket: {wsConnectionStatus} • Services: {totalServices} • Healthy: {healthyServices} • Issues: {unhealthyServices}
+          </p>
+          {lastUpdate && (
+            <p className="text-gray-600 text-xs mt-1">
+              ⚡ Last real-time update: {lastUpdate.toLocaleTimeString()}
+            </p>
+          )}
+        </div>
+      )}
+    </main>
+
+      {/* ← ADD THIS MODAL COMPONENT: */ }
+  <AddServiceModal
+    isOpen={isAddServiceModalOpen}
+    onClose={() => setIsAddServiceModalOpen(false)}
+    onServiceAdded={handleAddService}
+    existingServices={services}
+  />
     </div >
   )
 }
