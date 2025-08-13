@@ -61,24 +61,24 @@ async def get_alert_summary(db: AsyncSession = Depends(get_db)):
     total_services_result = await db.execute(
         select(func.count(Service.service_id)).where(Service.is_active == True)
     )
-    total_services = total_services_result.scalar() or 0
+    total_services = total_services_result.scalar()
     
     # Get total alerts count
     total_alerts_result = await db.execute(select(func.count(Alert.id)))
-    total_alerts = total_alerts_result.scalar() or 0
+    total_alerts = total_alerts_result.scalar()
     
     # Get active alerts count
     active_alerts_result = await db.execute(
         select(func.count(Alert.id)).where(Alert.is_resolved == False)
     )
-    total_active_alerts = active_alerts_result.scalar() or 0
+    total_active_alerts = active_alerts_result.scalar()
     
     # Get services with active alerts
     services_with_alerts_result = await db.execute(
         select(func.count(func.distinct(Alert.service_id)))
         .where(Alert.is_resolved == False)
     )
-    services_with_active_alerts = services_with_alerts_result.scalar() or 0
+    services_with_active_alerts = services_with_alerts_result.scalar()
     
     # Get alert breakdown by service
     alert_breakdown = {}
@@ -95,14 +95,14 @@ async def get_alert_summary(db: AsyncSession = Depends(get_db)):
             select(func.count(Alert.id))
             .where(Alert.service_id == service_id, Alert.is_resolved == False)
         )
-        active_count = active_count_result.scalar() or 0
+        active_count = active_count_result.scalar()
         
         # Count total alerts for this service
         total_count_result = await db.execute(
             select(func.count(Alert.id))
             .where(Alert.service_id == service_id)
         )
-        total_count = total_count_result.scalar() or 0
+        total_count = total_count_result.scalar()
         
         alert_breakdown[service_id] = {
             "service_name": service_name,

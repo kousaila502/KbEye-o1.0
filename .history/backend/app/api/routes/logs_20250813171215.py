@@ -1,0 +1,75 @@
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
+import httpx
+from app.core.database import get_db
+from app.models.service import Service
+from datetime import datetime, timedelta
+
+router = APIRouter(prefix="/api/v1/logs", tags=["logs"])
+
+@router.get("/{service_id}")
+async def get_service_logs(service_id: str, lines: int = 50, db: AsyncSession = Depends(get_db)):
+    """Get logs from a specific service"""
+    
+    # Get service info
+    result = await db.execute(select(Service).where(Service.service_id == service_id))
+    service = result.scalar_one_or_none()
+    
+    if not service:
+        raise HTTPException(status_code=404, detail="Service not found")
+    
+    try:
+        # Fetch logs from service
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            logs_url = f"{service.url.rstrip('/')}{service.logs_endpoint}"
+            response = await client.get(logs_url, params={"lines": min(lines, service.log_lines)})
+            
+            if response.status_code == 200:
+                logs_data = response.json()
+                formatted_logs = []
+                for log in logs_data.get("logs", []):
+                    formatted_logs.append({
+                        "timestamp": log.get("timestamp", datetime.now().isoformat() + "Z"),
+                        "level": log.get("level", "INFO"),
+                        "message": log.get("message", str(log)),
+                        "service_id": service.service_id
+                    })
+                return {"success": True, "data": formatted_logs}
+            else:
+                return {
+                    "success": True,
+                    "data": [
+                        {
+                            "timestamp": datetime.now().isoformat() + "Z",
+                            "level": "ERROR",
+                            "message": f"Service returned {response.status_code}: Logs endpoint not available",
+                            "service_id": service.service_id
+                        }
+                    ]
+                }
+                
+    except httpx.TimeoutException:
+        return {
+            "success": True,
+            "data": [
+                {
+                    "timestamp": datetime.now().isoformat() + "Z",
+                    "level": "WARN",
+                    "message": f"Logs request timeout for {service.name}",
+                    "service_id": service.service_id
+                }
+            ]
+        }
+    except Exception as e:
+        return {
+            "success": True,
+            "data": [
+                {
+                    "timestamp": datetime.now().isoformat() + "Z",
+                    "level": "INFO", 
+                    "message": f"Logs endpoint unavailable for {service.name}",
+                    "service_id": service.service_id
+                }
+            ]
+        }

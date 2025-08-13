@@ -182,44 +182,8 @@ class MonitoringService:
             db.add(db_check)
             await db.commit()
     
-    async def get_previous_check(self, service_id: str, db: AsyncSession) -> ServiceCheck:
-        """Get the previous health check for state comparison"""
-        result = await db.execute(
-            select(ServiceCheck)
-            .where(ServiceCheck.service_id == service_id)
-            .order_by(ServiceCheck.checked_at.desc())
-            .limit(1)
-        )
-        return result.scalar_one_or_none()
-    
-    async def handle_state_transition(self, service: Service, current_result: dict, previous_check: ServiceCheck):
-        """Handle alert logic based on state transitions (healthy ↔ down)"""
-        
-        # Determine previous state (default to healthy for new services)
-        previous_state = previous_check.is_healthy if previous_check else True
-        current_state = current_result['is_healthy']
-        
-        # State transition logic - ONLY alert on state changes
-        if previous_state == True and current_state == False:
-            # State: healthy → down = CREATE ALERT
-            await alert_service.handle_service_down(
-                service_id=service.service_id,
-                service_name=service.name,
-                error_message=current_result.get('error_message', 'Unknown error')
-            )
-            
-        elif previous_state == False and current_state == True:
-            # State: down → healthy = RESOLVE ALERTS (auto-resolve, no spam)
-            await alert_service.handle_service_recovered(
-                service_id=service.service_id,
-                service_name=service.name
-            )
-            
-        # else: no state change (healthy→healthy or down→down) = DO NOTHING
-        # This prevents alert spam while service stays in same state
-    
     async def monitor_all_services(self):
-        """Monitor all active services with state-based alerting"""
+        """Monitor all active services"""
         async with AsyncSessionLocal() as db:
             result = await db.execute(select(Service).where(Service.is_active == True))
             services = result.scalars().all()
@@ -231,7 +195,7 @@ class MonitoringService:
             tasks = [self.check_service_health(service) for service in services]
             results = await asyncio.gather(*tasks, return_exceptions=True)
             
-            # Process results with state-based alerting
+            # Save all results, broadcast updates, and handle alerts
             for i, result in enumerate(results):
                 if isinstance(result, Exception):
                     # Handle task exceptions gracefully
@@ -245,52 +209,56 @@ class MonitoringService:
                         "ssl_verified": None
                     }
                 
-                service = services[i]
-                
-                # Get previous check for state comparison BEFORE saving new one
-                previous_check = await self.get_previous_check(service.service_id, db)
-                
-                # Save current check result
                 await self.save_check_result(result)
                 
-                # Handle state-based alerting
-                await self.handle_state_transition(service, result, previous_check)
-                
-                # Enhanced logging with state info
+                # Enhanced logging with SSL info
                 ssl_info = ""
                 if result.get('ssl_verified') is not None:
                     ssl_info = f" [SSL: {'✓' if result['ssl_verified'] else '✗'}]"
                 
-                # Show state transition in logs
-                prev_state = "healthy" if (previous_check.is_healthy if previous_check else True) else "down"
-                curr_state = "healthy" if result['is_healthy'] else "down"
-                
-                if prev_state != curr_state:
-                    # State changed - important log
-                    status_icon = "🔄"
-                    state_info = f" [{prev_state}→{curr_state}]"
-                else:
-                    # State unchanged - normal log
-                    status_icon = "✅" if result['is_healthy'] else "❌"
-                    state_info = ""
-                
-                print(f"{status_icon} {result['service_id']}: {curr_state} "
-                      f"({result['response_time']:.1f}ms){ssl_info}{state_info}")
+                status_icon = "✅" if result['is_healthy'] else "❌"
+                print(f"{status_icon} {result['service_id']}: {result['is_healthy']} "
+                      f"({result['response_time']:.1f}ms){ssl_info}")
                 
                 # Broadcast real-time update
                 await manager.broadcast({
                     "type": "health_check",
                     "data": result
                 })
-    
+                
+                # Handle alerts
+                service = next(s for s in services if s.service_id == result['service_id'])
+                
+                if not result['is_healthy']:
+                    # Service is down - send alert
+                    await alert_service.handle_service_down(
+                        service_id=service.service_id,
+                        service_name=service.name,
+                        error_message=result.get('error_message', 'Unknown error')
+                    )
+                else:
+                    # Service is up - check if it was down before (recovery)
+                    # Get previous check
+                    prev_check = await db.execute(
+                        select(ServiceCheck)
+                        .where(ServiceCheck.service_id == service.service_id)
+                        .order_by(ServiceCheck.checked_at.desc())
+                        .offset(1)
+                        .limit(1)
+                    )
+                    prev_result = prev_check.scalar_one_or_none()
+                    
+                    if prev_result and not prev_result.is_healthy:
+                        # Service recovered!
+                        await alert_service.handle_service_recovered(
+                            service_id=service.service_id,
+                            service_name=service.name
+                        )
+
     async def start_monitoring(self):
         """Start the monitoring loop"""
         self.is_running = True
-        print("🔍 KbEye monitoring started with state-based alerting...")
-        print("📋 Alert logic: healthy→down=ALERT, down→healthy=RESOLVE, no-change=SILENT")
-        
-        # Run cleanup on startup to resolve very old alerts
-        await alert_service.cleanup_old_alerts(hours_old=24)
+        print("🔍 KbEye monitoring started with professional SSL handling...")
         
         while self.is_running:
             try:

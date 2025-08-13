@@ -183,38 +183,14 @@ class LogService:
                     "timeout": service.timeout
                 }
                 
-                # Add platform configuration from database fields
-                if service.platform_type:
-                    platform_config = {
-                        "type": service.platform_type,
-                        "app_name": service.platform_app_name or service.service_id,
-                        "credentials": {
-                            "api_key": service.platform_api_key
-                        }
-                    }
-                    
-                    # Add additional platform config if available
-                    if service.platform_config:
-                        platform_config.update(service.platform_config)
-                    
-                    config["platform"] = platform_config
-                    print(f"✅ Found platform config for {service_id}: {service.platform_type}")
-                else:
-                    print(f"⚠️ No platform config found for {service_id}")
-                
-                # Try to get additional platform configuration from config files
+                # Try to get platform configuration from config files
                 try:
                     from app.services.config_service import config_service
                     individual_config = await config_service.load_service_config(service_id)
                     if individual_config and "platform" in individual_config:
-                        # Merge file config with database config
-                        if "platform" in config:
-                            config["platform"].update(individual_config["platform"])
-                        else:
-                            config["platform"] = individual_config["platform"]
-                        print(f"✅ Merged platform config from file for {service_id}")
+                        config["platform"] = individual_config["platform"]
                 except Exception as e:
-                    print(f"⚠️ Could not load platform config file for {service_id}: {e}")
+                    print(f"⚠️ Could not load platform config for {service_id}: {e}")
                 
                 return config
                 

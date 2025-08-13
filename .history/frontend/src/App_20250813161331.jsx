@@ -208,11 +208,11 @@ function App() {
     console.log('🔄 Service action:', action, service.service_id)
     if (action === 'delete') {
       // Remove service from local state
-      setServices(prevServices =>
+      setServices(prevServices => 
         prevServices.filter(s => s.service_id !== service.service_id)
       )
       // Remove service status
-      setServicesStatus(prevStatus =>
+      setServicesStatus(prevStatus => 
         prevStatus.filter(s => s.service_id !== service.service_id)
       )
       console.log('✅ Service removed from dashboard')

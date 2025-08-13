@@ -8,7 +8,6 @@ from app.services.log_service import log_service
 from app.services.log_providers.registry import log_provider_registry
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Dict, Any, List, Optional 
 
 router = APIRouter(prefix="/api/v1/logs", tags=["logs"])
 
@@ -25,7 +24,7 @@ class LogsResponse(BaseModel):
     logs: List[LogEntry]
     metadata: Dict[str, Any]
     timestamp: str
-    error_message: Optional[str] = None
+    error_message: str = None
 
 @router.get("/{service_id}", response_model=LogsResponse)
 async def get_service_logs(

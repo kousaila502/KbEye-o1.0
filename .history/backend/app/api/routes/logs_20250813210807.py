@@ -8,7 +8,6 @@ from app.services.log_service import log_service
 from app.services.log_providers.registry import log_provider_registry
 from pydantic import BaseModel
 from datetime import datetime
-from typing import Dict, Any, List, Optional 
 
 router = APIRouter(prefix="/api/v1/logs", tags=["logs"])
 
