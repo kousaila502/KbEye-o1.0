@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="KbEye - Professional Microservices Monitoring Dashboard">
+    <title>KbEye - Monitoring Dashboard</title>
+    
+    <!-- Preload critical CSS -->
+    <link rel="preload" href="src/assets/css/variables.css" as="style">
+    <link rel="preload" href="src/assets/css/base.css" as="style">
+    
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="src/assets/css/variables.css">
+    <link rel="stylesheet" href="src/assets/css/base.css">
+    <link rel="stylesheet" href="src/assets/css/components.css">
+    <link rel="stylesheet" href="src/assets/css/pages.css">
+    <link rel="stylesheet" href="src/assets/css/utils.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="src/assets/icons/kbeye-logo.svg">
+    <link rel="icon" type="image/png" href="src/assets/icons/kbeye-logo.png">
+</head>
+<body class="theme-dark">
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">
+                <div class="kb-logo">
+                    <span class="kb-text">Kb</span>
+                    <span class="eye-text">Eye</span>
+                </div>
+            </div>
+            <div class="loading-spinner"></div>
+            <p class="loading-text">Initializing monitoring systems...</p>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container" style="display: none;">
+        
+        <!-- Header Navigation -->
+        <header class="app-header" role="banner">
+            <div class="header-container">
+                
+                <!-- Logo Section -->
+                <div class="header-brand">
+                    <div class="brand-logo">
+                        <span class="brand-kb">Kb</span>
+                        <span class="brand-eye">Eye</span>
+                    </div>
+                    <div class="brand-subtitle">Monitoring Dashboard</div>
+                </div>
+
+                <!-- System Health Summary -->
+                <div class="header-status">
+                    <div class="status-item" id="total-services">
+                        <div class="status-value">--</div>
+                        <div class="status-label">Services</div>
+                    </div>
+                    <div class="status-item" id="healthy-services">
+                        <div class="status-value status-healthy">--</div>
+                        <div class="status-label">Healthy</div>
+                    </div>
+                    <div class="status-item" id="unhealthy-services">
+                        <div class="status-value status-unhealthy">--</div>
+                        <div class="status-label">Issues</div>
+                    </div>
+                    <div class="status-item" id="avg-response-time">
+                        <div class="status-value">--ms</div>
+                        <div class="status-label">Avg Response</div>
+                    </div>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="header-actions">
+                    <!-- Connection Status -->
+                    <div class="connection-indicator" id="connection-status">
+                        <div class="connection-dot"></div>
+                        <span class="connection-text">Connecting...</span>
+                    </div>
+                    
+                    <!-- Refresh Button -->
+                    <button class="btn btn-icon" id="refresh-btn" title="Refresh Dashboard">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M23 4v6h-6M1 20v-6h6"/>
+                            <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/>
+                        </svg>
+                    </button>
+
+                    <!-- Add Service Button -->
+                    <button class="btn btn-primary" id="add-service-btn">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Service
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="app-main" role="main">
+            
+            <!-- Quick Actions Bar -->
+            <div class="quick-actions">
+                <div class="actions-container">
+                    <div class="actions-left">
+                        <button class="filter-btn active" data-filter="all">All Services</button>
+                        <button class="filter-btn" data-filter="healthy">Healthy</button>
+                        <button class="filter-btn" data-filter="unhealthy">Issues</button>
+                        <button class="filter-btn" data-filter="unknown">Unknown</button>
+                    </div>
+                    <div class="actions-right">
+                        <div class="search-container">
+                            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <input type="text" class="search-input" placeholder="Search services..." id="service-search">
+                        </div>
+                        <button class="btn btn-outline" id="view-logs-btn">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14,2 14,8 20,8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10,9 9,9 8,9"></polyline>
+                            </svg>
+                            View Logs
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Services Grid Container -->
+            <div class="content-container">
+                
+                <!-- Services Grid -->
+                <div class="services-section">
+                    <div class="services-grid" id="services-grid">
+                        <!-- Service cards will be dynamically inserted here -->
+                        
+                        <!-- Loading Skeleton Cards (shown initially) -->
+                        <div class="service-card skeleton" id="skeleton-cards">
+                            <div class="skeleton-header">
+                                <div class="skeleton-line skeleton-title"></div>
+                                <div class="skeleton-badge"></div>
+                            </div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-url"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Repeat skeleton cards -->
+                        <div class="service-card skeleton">
+                            <div class="skeleton-header">
+                                <div class="skeleton-line skeleton-title"></div>
+                                <div class="skeleton-badge"></div>
+                            </div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-url"></div>
+                            </div>
+                        </div>
+                        
+                        <div class="service-card skeleton">
+                            <div class="skeleton-header">
+                                <div class="skeleton-line skeleton-title"></div>
+                                <div class="skeleton-badge"></div>
+                            </div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-metric"></div>
+                                <div class="skeleton-line skeleton-url"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="empty-state" id="empty-state" style="display: none;">
+                        <div class="empty-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                        </div>
+                        <h3 class="empty-title">No Services Found</h3>
+                        <p class="empty-description">Start monitoring your microservices by adding your first service.</p>
+                        <button class="btn btn-primary" id="empty-add-service">Add Your First Service</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Slide-out Sidebar Panel -->
+        <aside class="sidebar-panel" id="sidebar-panel">
+            <div class="sidebar-header">
+                <h2 class="sidebar-title" id="sidebar-title">Service Details</h2>
+                <button class="btn btn-icon sidebar-close" id="sidebar-close">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="sidebar-content" id="sidebar-content">
+                <!-- Dynamic content will be loaded here -->
+            </div>
+        </aside>
+
+        <!-- Overlay for sidebar -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+    </div>
+
+    <!-- Add Service Modal -->
+    <div class="modal-overlay" id="add-service-modal">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2 class="modal-title">Add New Service</h2>
+                <button class="btn btn-icon modal-close" id="modal-close">
+                    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-content">
+                <form class="add-service-form" id="add-service-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="service-id" class="form-label">Service ID*</label>
+                            <input type="text" id="service-id" name="service_id" class="form-input" 
+                                   placeholder="my-api-service" required>
+                            <div class="form-help">Unique identifier for the service</div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="service-name" class="form-label">Service Name*</label>
+                            <input type="text" id="service-name" name="name" class="form-input" 
+                                   placeholder="My API Service" required>
+                        </div>
+                        
+                        <div class="form-group form-group-full">
+                            <label for="service-url" class="form-label">Base URL*</label>
+                            <input type="url" id="service-url" name="url" class="form-input" 
+                                   placeholder="https://api.example.com" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="health-endpoint" class="form-label">Health Endpoint</label>
+                            <input type="text" id="health-endpoint" name="health_endpoint" class="form-input" 
+                                   placeholder="/health" value="/health">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="logs-endpoint" class="form-label">Logs Endpoint</label>
+                            <input type="text" id="logs-endpoint" name="logs_endpoint" class="form-input" 
+                                   placeholder="/logs" value="/logs">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="check-interval" class="form-label">Check Interval (seconds)</label>
+                            <input type="number" id="check-interval" name="check_interval" class="form-input" 
+                                   placeholder="30" value="30" min="10" max="300">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="timeout" class="form-label">Timeout (ms)</label>
+                            <input type="number" id="timeout" name="timeout" class="form-input" 
+                                   placeholder="5000" value="5000" min="1000" max="30000">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="expected-status" class="form-label">Expected Status Code</label>
+                            <input type="number" id="expected-status" name="expected_status" class="form-input" 
+                                   placeholder="200" value="200" min="100" max="599">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="log-lines" class="form-label">Log Lines to Fetch</label>
+                            <input type="number" id="log-lines" name="log_lines" class="form-input" 
+                                   placeholder="50" value="50" min="10" max="1000">
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-outline" id="cancel-add-service">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="submit-add-service">
+                            <span class="btn-text">Add Service</span>
+                            <div class="btn-spinner" style="display: none;"></div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script type="module" src="src/main.js"></script>
+</body>
+</html>

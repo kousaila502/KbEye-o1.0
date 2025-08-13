@@ -1,0 +1,18 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* KbEye Custom Base Styles */
+@layer base {
+  html {
+    @apply antialiased;
+  }
+  
+  body {
+    @apply bg-gray-850 text-white font-sans;
+  }
+  
+  * {
+    @apply border-gray-700;
+  }
+}
